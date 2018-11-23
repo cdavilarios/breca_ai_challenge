@@ -58,7 +58,7 @@ class Employees(Resource):
         init_day, end_day, cut_day = get_period(periodo)
 
         for key, value in month_number.items():
-            if value == cut_day.month:
+            if value == init_day.month:
                 month_name = key
 
         msg = metric
@@ -69,7 +69,7 @@ class Employees(Resource):
         else:
             msg += " de " + hotel
 
-        msg += " en "+month_name+" del "+str(cut_day.year)+" al "+cut_day.strftime('%d/%m/%Y')+": "
+        msg += " en "+month_name+" del "+str(init_day.year)+" al "+cut_day.strftime('%d/%m/%Y')+": "
 
         cut_day = cut_day.strftime('%d/%m/%Y')
         init_day = init_day.strftime('%d/%m/%Y')
