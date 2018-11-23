@@ -54,7 +54,7 @@ class Employees(Resource):
 
         init_day, end_day, cut_day = get_period(periodo)
 
-        for key, value in mydict.items():
+        for key, value in month_number.items():
             if value == cut_day.month:
                 month_name = key
 
