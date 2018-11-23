@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, make_response
 from flask_restful import Resource, Api
 from json import dumps
 import pymssql
+from datetime import datetime
 
 conn = pymssql.connect(server = 'brein.c75yaa9tpxts.us-east-2.rds.amazonaws.com', user = 'BREIN', password = 'Rachel123456')
 cursor = conn.cursor()
@@ -9,12 +10,16 @@ cursor = conn.cursor()
 app = Flask(__name__)
 api = Api(app)
 
+
+
 class Employees(Resource):
     def post(self):
         req = request.get_json(silent = True, force = True)
         params = req.get('queryResult').get('parameters')
         metric = params.get('metric')
         hotel = params.get('company')
+
+        periodo = params.get('company')
 
         if not hotel:
             hotel = 'ALL' 
