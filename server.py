@@ -68,12 +68,15 @@ class Employees(Resource):
         # Inputs de Dialogflow 
         req = request.get_json(silent = False, force = True)
         params = req.get('queryResult').get('parameters')
-        
-        metric = get_metrica(params.get('metric'))
+
+        metric = params.get('metric')
+        metric_std = get_metrica(metric)
         hotel = params.get('company')
         segment = params.get('segment')
         periodo = params.get('period').upper()
 
+        intent = req.get('queryResult').get('intent').get('displayName')
+        
         print(metric)
         print(hotel)
         print(segment)
@@ -110,7 +113,7 @@ class Employees(Resource):
         ### Query
         
         print('LLAMADA A QUERY')
-        query = "SELECT DBO.FMASTER_2('%s','%s','%s','%s','%s','%s')" % (metric, cut_day, init_day, end_day, segment, hotel)
+        query = "SELECT DBO.FMASTER_2('%s','%s','%s','%s','%s','%s')" % (metric_std, cut_day, init_day, end_day, segment, hotel)
         cursor.execute(query)
         row = cursor.fetchone()
         
