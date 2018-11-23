@@ -29,7 +29,6 @@ month_number = {
 def get_period(period):
     today = datetime.today()
     date_range = calendar.monthrange(today.year,today.month)
-    month = month_number[period]
     cut_day = today
    
     if not period:
@@ -37,10 +36,11 @@ def get_period(period):
         end_day = today.replace(day=date_range[1])
     elif "pasado" in period: #anio
         cut_day = today.replace(year=today.year-1)
-        init_day = today.replace(year=today.year-1,month=month,day=1)
-        end_day = today.replace(year=today.year-1,month=month,day=date_range[1])
+        init_day = today.replace(year=today.year-1,day=1)
+        end_day = today.replace(year=today.year-1,day=date_range[1])
     else:
         # por mes y hoy
+        month = month_number[period]
         init_day = today.replace(month=month,day=1)
         end_day = today.replace(month=month,day=date_range[1]) 
 
