@@ -80,8 +80,10 @@ class Employees(Resource):
         cut_day = cut_day.strftime('%d/%m/%Y')
         init_day = init_day.strftime('%d/%m/%Y')
         end_day = end_day.strftime('%d/%m/%Y')
-            
-        segment = 'RETAIL'
+        
+        segment = params.get('segment')
+        if not segment:
+            segment = 'ALL'
 
 
         ### Query
