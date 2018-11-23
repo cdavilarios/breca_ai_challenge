@@ -1,3 +1,4 @@
+# Librerias 
 from flask import Flask, request, jsonify, make_response
 from flask_restful import Resource, Api
 from json import dumps
@@ -5,6 +6,7 @@ from datetime import datetime
 import calendar
 import pyodbc
 
+# Conexion local sql server
 conn = pyodbc.connect("DSN=BREINLOCAL")
 cursor = conn.cursor()
 
@@ -12,19 +14,28 @@ app = Flask(__name__)
 api = Api(app)
 
 month_number = {
-    "Enero":1,
-    "Febrero":2,
-    "Marzo":3,
-    "Abril":4,
-    "Mayo":5,
-    "Junio":6,
-    "Julio":7,
-    "Agosto":8,
-    "Septiembre":9,
-    "Octubre":10,
-    "Noviembre":11,
-    "Diciembre":12
+    "ENERO":1,
+    "FEBRERO":2,
+    "MARZO":3,
+    "ABRIL":4,
+    "MAYO":5,
+    "JUNIO":6,
+    "JULIO":7,
+    "AGOSTO":8,
+    "SEPTIEMBRE":9,
+    "OCTUBRE":10,
+    "NOVIEMBRE":11,
+    "DICIEMBRE":12
 }
+
+metricas = {
+    'los ingresos': 'REVENUE',
+    'el pickup': 'REVENUE',
+    'la ocupacion': 'OCUPACION'
+}
+
+def get_metrica(metrica):
+    return metricas[metrica]
 
 def get_period(period):
     today = datetime.today()
@@ -43,54 +54,76 @@ def get_period(period):
         month = month_number[period]
         init_day = today.replace(month=month,day=1)
         end_day = today.replace(month=month,day=date_range[1]) 
-
+        
     return init_day, end_day, cut_day
-    
+
 class Employees(Resource):
     def post(self):
-        req = request.get_json(silent = True, force = True)
-        params = req.get('queryResult').get('parameters')
-        metric = params.get('metric')
-        hotel = params.get('company')
-        periodo = params.get('period')
 
+        # Inicio del Post  
+        print('********************')
+        print('INICIO')
+
+        # Inputs de Dialogflow 
+        req = request.get_json(silent = False, force = True)
+        params = req.get('queryResult').get('parameters')
+        
+        metric = get_metrica(params.get('metric'))
+        hotel = params.get('company')
+        segment = params.get('segment')
+        periodo = params.get('period').upper()
+
+        print(metric)
+        print(hotel)
+        print(segment)
+        print(periodo)
+        
+        # Extraer fechas del periodo 
         init_day, end_day, cut_day = get_period(periodo)
+        
+        print(init_day)
+        print(end_day)
+        print(cut_day)
+
+        mensaje = metric
 
         for key, value in month_number.items():
             if value == init_day.month:
-                month_name = key
-
-        msg = metric
+                nombre_mes = key
 
         if not hotel:
             hotel = 'ALL'
-            msg += " general"
+            mensaje = mensaje + " general"
         else:
-            msg += " de " + hotel
+            mensaje = mensaje + " de " + hotel
 
-        msg += " en "+month_name+" del "+str(init_day.year)": "
+        if not segment:
+            segment = 'ALL'
+
+        mensaje = mensaje + " en " + nombre_mes + " del " + str(init_day.year) + ": "
 
         cut_day = cut_day.strftime('%d/%m/%Y')
         init_day = init_day.strftime('%d/%m/%Y')
         end_day = end_day.strftime('%d/%m/%Y')
         
-        segment = params.get('segment')
-        if not segment:
-            segment = 'ALL'
-
         ### Query
-        query = "SELECT DBO.FMASTER_2('%s','%s','%s','%s','%s')" % (metric, cut_day, init_day, end_day, segment, hotel)
+        
+        print('LLAMADA A QUERY')
+        query = "SELECT DBO.FMASTER_2('%s','%s','%s','%s','%s','%s')" % (metric, cut_day, init_day, end_day, segment, hotel)
         cursor.execute(query)
         row = cursor.fetchone()
-
-        ###
-        msg += str(row[0])
+        
+        ### Respuesta Dialogflow 
+        mensaje = mensaje + str(row[0])
         response = {
-            "fulfillmentText": msg
+            "fulfillmentText": mensaje
         }
+
+        print('FIN')
 
         return make_response(jsonify(response))
 
+# Crear servicio 
 api.add_resource(Employees, '/employees') # Route_1
 
 if __name__ == '__main__':
