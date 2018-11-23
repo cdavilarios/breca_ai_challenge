@@ -5,9 +5,6 @@ import pymssql
 
 conn = pymssql.connect(server = 'brein.c75yaa9tpxts.us-east-2.rds.amazonaws.com', user = 'BREIN', password = 'Rachel123456')
 cursor = conn.cursor()
-query = "SELECT BREIN.DBO.PRUEBA_4('20/11/2018','01/11/2018','30/11/2018','RETAIL','Westin')"
-cursor.execute(query)
-row = cursor.fetchone()
 
 app = Flask(__name__)
 api = Api(app)
@@ -17,6 +14,20 @@ class Employees(Resource):
         req = request.get_json(silent = True, force = True)
         params = req.get('queryResult').get('parameters')
         metric = params.get('metric')
+        hotel = params.get('company')
+
+        if not hotel:
+            hotel = 'ALL' 
+            
+        print('******************************************')
+        print(hotel)
+        print('******************************************')
+
+        segment = 'RETAIL'
+        query = "SELECT BREIN.DBO.PRUEBA_4('20/11/2018','01/11/2018','30/11/2018','%s','%s')" % (segment, hotel)
+        cursor.execute(query)
+        row = cursor.fetchone()
+
         msg = 'El ' + metric + ' es ' + str(row[0])
         response = {
         "fulfillmentText": msg
