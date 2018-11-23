@@ -1,11 +1,11 @@
 from flask import Flask, request, jsonify, make_response
 from flask_restful import Resource, Api
 from json import dumps
-import pymssql
 from datetime import datetime
 import calendar
+import pyodbc
 
-conn = pymssql.connect(host = 'BREIN16000122\SQLEXPRESS', database = 'INTURSA_DM')
+conn = pyodbc.connect("DSN=BREINLOCAL")
 cursor = conn.cursor()
 
 app = Flask(__name__)
@@ -46,7 +46,6 @@ def get_period(period):
 
     return init_day, end_day, cut_day
     
-
 class Employees(Resource):
     def post(self):
         req = request.get_json(silent = True, force = True)
@@ -79,13 +78,12 @@ class Employees(Resource):
         if not segment:
             segment = 'ALL'
 
-
         ### Query
-        query = "SELECT BREIN.DBO.PRUEBA_4('%s','%s','%s','%s','%s')" % (metric, cut_day, init_day, end_day, segment, hotel)
+        query = "SELECT DBO.FMASTER_2('%s','%s','%s','%s','%s')" % (metric, cut_day, init_day, end_day, segment, hotel)
         cursor.execute(query)
         row = cursor.fetchone()
 
-
+        ###
         msg += str(row[0])
         response = {
             "fulfillmentText": msg
@@ -94,8 +92,6 @@ class Employees(Resource):
         return make_response(jsonify(response))
 
 api.add_resource(Employees, '/employees') # Route_1
-#api.add_resource(Tracks, '/tracks') # Route_2
-#api.add_resource(Employees_Name, '/employees/<employee_id>') # Route_3
 
 if __name__ == '__main__':
      app.run(port='8080')
