@@ -121,8 +121,10 @@ class Employees(Resource):
             else:
                 mensaje += " en " + hotel +" se tiene "
 
-            row = query_db(metric_std, cut_day, init_day, end_day, segment, hotel)
-            mensaje += row[0] + " dolares cerrados y " + row[1] + " reservado."
+            row_cerrado = query_db(metric_std, cut_day, init_day, cut_day, segment, hotel)
+            row_reservado = query_db(metric_std, cut_day, cut_day+timedelta(days=1), end_day, segment, hotel)
+            
+            mensaje += row_cerrado + " dolares cerrados y " + row_reservado + " dolares reservados."
 
         else:
             mensaje = metric
