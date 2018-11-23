@@ -8,12 +8,6 @@ import calendar
 conn = pymssql.connect(host = 'BREIN16000122\SQLEXPRESS', database = 'INTURSA_DM')
 cursor = conn.cursor()
 
-conn = pymssql.connect(
-    host='BREIN16000122\SQLEXPRESS',
-    user='BREIN\arojas',
-    database='INTURSA_DM'
-)
-
 app = Flask(__name__)
 api = Api(app)
 
