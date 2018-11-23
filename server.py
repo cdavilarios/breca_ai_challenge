@@ -32,7 +32,10 @@ def get_period(period):
     month = month_number[period]
     cut_day = today
    
-    if "pasado" in period and "año" in period:
+    if not period:
+        init_day = today.replace(day=1)
+        end_day = today.replace(day=date_range[1])
+    elif "pasado" in period: #anio
         cut_day = today.replace(year=today.year-1)
         init_day = today.replace(year=today.year-1,month=month,day=1)
         end_day = today.replace(year=today.year-1,month=month,day=date_range[1])
@@ -66,16 +69,20 @@ class Employees(Resource):
         else:
             msg += " de " + hotel
 
-        msg += " en"+month_name+" del "+str(cut_day.year)+" al "+cut_day.strftime('%d/%m/%Y')+": "
+        msg += " en "+month_name+" del "+str(cut_day.year)+" al "+cut_day.strftime('%d/%m/%Y')+": "
 
         cut_day = cut_day.strftime('%d/%m/%Y')
         init_day = init_day.strftime('%d/%m/%Y')
         end_day = end_day.strftime('%d/%m/%Y')
             
         segment = 'RETAIL'
+
+
+        ### Query
         query = "SELECT BREIN.DBO.PRUEBA_4('%s','%s','%s','%s','%s')" % (cut_day, init_day, end_day, segment, hotel)
         cursor.execute(query)
         row = cursor.fetchone()
+
 
         msg += str(row[0])
         response = {
