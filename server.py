@@ -14,18 +14,18 @@ app = Flask(__name__)
 api = Api(app)
 
 month_number = {
-    "ENERO":1,
-    "FEBRERO":2,
-    "MARZO":3,
-    "ABRIL":4,
-    "MAYO":5,
-    "JUNIO":6,
-    "JULIO":7,
-    "AGOSTO":8,
-    "SEPTIEMBRE":9,
-    "OCTUBRE":10,
-    "NOVIEMBRE":11,
-    "DICIEMBRE":12
+    "enero":1,
+    "febrero":2,
+    "marzo":3,
+    "abril":4,
+    "mayo":5,
+    "junio":6,
+    "julio":7,
+    "agosto":8,
+    "septiembre":9,
+    "octubre":10,
+    "noviembre":11,
+    "diciembre":12
 }
 
 metricas = {
@@ -47,7 +47,11 @@ def get_period(period):
     if not period:
         init_day = today.replace(day=1)
         end_day = today.replace(day=date_range[1])
-    elif "pasado" in period: #anio
+    elif "pasado" in period and "mes" in period: #mes pasado
+        cut_day = today.replace(month=today.month-1)
+        init_day = today.replace(month=today.month-1,day=1)
+        end_day = today.replace(month=today.month-1,day=date_range[1])
+    elif "pasado" in period and "año" in period: #anio
         cut_day = today.replace(year=today.year-1)
         init_day = today.replace(year=today.year-1,day=1)
         end_day = today.replace(year=today.year-1,day=date_range[1])
@@ -58,6 +62,21 @@ def get_period(period):
         end_day = today.replace(month=month,day=date_range[1]) 
         
     return init_day, end_day, cut_day
+
+
+def query_db(metric_std, cut_day, init_day, end_day, segment, hotel):
+    cut_day = cut_day.strftime('%d/%m/%Y')
+    init_day = init_day.strftime('%d/%m/%Y')
+    end_day = end_day.strftime('%d/%m/%Y')
+        
+    ### Query
+        
+    print('LLAMADA A QUERY')
+    query = "SELECT DBO.FMASTER_2('%s','%s','%s','%s','%s','%s')" % (metric_std, cut_day, init_day, end_day, segment, hotel)
+    cursor.execute(query)
+    row = cursor.fetchone()
+
+    return row
 
 class Employees(Resource):
     def post(self):
@@ -74,7 +93,7 @@ class Employees(Resource):
         metric_std = get_metrica(metric)
         hotel = params.get('company')
         segment = params.get('segment')
-        periodo = params.get('period').upper()
+        periodo = params.get('period').lower()
 
         intent = req.get('queryResult').get('intent').get('displayName')
         
@@ -90,39 +109,43 @@ class Employees(Resource):
         print(end_day)
         print(cut_day)
 
-        mensaje = metric
-
         for key, value in month_number.items():
             if value == init_day.month:
                 nombre_mes = key
 
-        if not hotel:
-            hotel = 'ALL'
-            mensaje = mensaje + " general"
+        if 'libros' in intent:
+            mensaje = 'En '+ nombre_mes+" del " + str(init_day.year)
+
+            if not hotel:
+                hotel = 'ALL'
+            else:
+                mensaje += " en " + hotel +" se tiene "
+
+            row = query_db(metric_std, cut_day, init_day, end_day, segment, hotel)
+            mensaje += row[0] + " dolares cerrados y " + row[1] + " reservado."
+
         else:
-            mensaje = mensaje + " de " + hotel
+            mensaje = metric
 
-        if not segment:
-            segment = 'ALL'
+            if not hotel:
+                hotel = 'ALL'
+                mensaje = mensaje + " general"
+            else:
+                mensaje = mensaje + " de " + hotel
 
-        mensaje = mensaje + " en " + nombre_mes + " del " + str(init_day.year) + ": "
+            if not segment:
+                segment = 'ALL'
 
-        cut_day = cut_day.strftime('%d/%m/%Y')
-        init_day = init_day.strftime('%d/%m/%Y')
-        end_day = end_day.strftime('%d/%m/%Y')
-        
-        ### Query
-        
-        print('LLAMADA A QUERY')
-        query = "SELECT DBO.FMASTER_2('%s','%s','%s','%s','%s','%s')" % (metric_std, cut_day, init_day, end_day, segment, hotel)
-        cursor.execute(query)
-        row = cursor.fetchone()
-        
-        # Valor extraido de Query 
-        print(row)
+            mensaje += " en " + nombre_mes + " del " + str(init_day.year) + "es "
 
-        ### Respuesta Dialogflow 
-        mensaje = mensaje + str(row[0])
+            row = query_db(metric_std, cut_day, init_day, end_day, segment, hotel)
+
+            # Valor extraido de Query 
+            print(row)
+
+            ### Respuesta Dialogflow 
+            mensaje = mensaje + str(row[0])
+
         response = {
             "fulfillmentText": mensaje
         }
