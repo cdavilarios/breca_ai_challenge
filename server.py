@@ -76,9 +76,13 @@ class Employees(Resource):
         end_day = end_day.strftime('%d/%m/%Y')
             
         segment = 'RETAIL'
+
+
+        ### Query
         query = "SELECT BREIN.DBO.PRUEBA_4('%s','%s','%s','%s','%s')" % (cut_day, init_day, end_day, segment, hotel)
         cursor.execute(query)
         row = cursor.fetchone()
+
 
         msg += str(row[0])
         response = {
