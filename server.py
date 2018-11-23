@@ -2,7 +2,7 @@
 from flask import Flask, request, jsonify, make_response
 from flask_restful import Resource, Api
 from json import dumps
-from datetime import datetime
+from datetime import datetime, timedelta
 import calendar
 import pyodbc
 
@@ -29,9 +29,9 @@ month_number = {
 }
 
 metricas = {
-    'los ingresos': 'REVENUE',
-    'el pickup': 'REVENUE',
-    'la ocupacion': 'OCUPACION'
+    'La tarifa promedio': 'REVENUE',
+    'El pickup': 'REVENUE',
+    'La ocupacion': 'OCUPACION'
 }
 
 def get_metrica(metrica):
@@ -39,8 +39,9 @@ def get_metrica(metrica):
 
 def get_period(period):
     today = datetime.today()
+    yesterday = datetime.today() - timedelta(days = 1)
     date_range = calendar.monthrange(today.year,today.month)
-    cut_day = today
+    cut_day = yesterday
    
     if not period:
         init_day = today.replace(day=1)
@@ -113,6 +114,9 @@ class Employees(Resource):
         cursor.execute(query)
         row = cursor.fetchone()
         
+        # Valor extraido de Query 
+        print(row)
+
         ### Respuesta Dialogflow 
         mensaje = mensaje + str(row[0])
         response = {
