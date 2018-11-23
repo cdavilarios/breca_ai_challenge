@@ -2,12 +2,47 @@ from flask import Flask, request, jsonify, make_response
 from flask_restful import Resource, Api
 from json import dumps
 import pymssql
+from datetime import datetime
+import calendar
 
 conn = pymssql.connect(server = 'brein.c75yaa9tpxts.us-east-2.rds.amazonaws.com', user = 'BREIN', password = 'Rachel123456')
 cursor = conn.cursor()
 
 app = Flask(__name__)
 api = Api(app)
+
+month_number = {
+    "Enero":1,
+    "Febrero":2,
+    "Marzo":3,
+    "Abril":4,
+    "Mayo":5,
+    "Junio":6,
+    "Julio":7,
+    "Agosto":8,
+    "Septiembre":9,
+    "Octubre":10,
+    "Noviembre":11,
+    "Diciembre":12
+}
+
+def get_period(period):
+    today = datetime.today()
+    date_range = calendar.monthrange(today.year,today.month)
+    month = month_number[period]
+    cut_day = today
+   
+    if "pasado" in period and "año" in period:
+        cut_day = today.replace(year=today.year-1)
+        init_day = today.replace(year=today.year-1,month=month,day=1)
+        end_day = today.replace(year=today.year-1,month=month,day=date_range[1])
+    else:
+        # por mes y hoy
+        init_day = today.replace(month=month,day=1)
+        end_day = today.replace(month=month,day=date_range[1]) 
+
+    return init_day, end_day, cut_day
+    
 
 class Employees(Resource):
     def post(self):
@@ -17,16 +52,28 @@ class Employees(Resource):
         hotel = params.get('company')
         periodo = params.get('period')
 
+        init_day, end_day, cut_day = get_period(periodo)
+
+        for key, value in mydict.items():
+            if value == cut_day.month:
+                month_name = key
+
         msg = metric
 
         if not hotel:
             hotel = 'ALL'
-            msg += " general: "
+            msg += " general"
         else:
-            msg += " de " + hotel +": "
+            msg += " de " + hotel
+
+        msg += " en"+month_name+" del "+str(cut_day.year)+" al "+cut_day.strftime('%d/%m/%Y')+": "
+
+        cut_day = cut_day.strftime('%d/%m/%Y')
+        init_day = init_day.strftime('%d/%m/%Y')
+        end_day = end_day.strftime('%d/%m/%Y')
             
         segment = 'RETAIL'
-        query = "SELECT BREIN.DBO.PRUEBA_4('20/11/2018','01/11/2018','30/11/2018','%s','%s')" % (segment, hotel)
+        query = "SELECT BREIN.DBO.PRUEBA_4('%s','%s','%s','%s','%s')" % (cut_day, init_day, end_day, segment, hotel)
         cursor.execute(query)
         row = cursor.fetchone()
 
