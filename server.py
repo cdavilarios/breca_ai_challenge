@@ -5,8 +5,14 @@ import pymssql
 from datetime import datetime
 import calendar
 
-conn = pymssql.connect(server = 'brein.c75yaa9tpxts.us-east-2.rds.amazonaws.com', user = 'BREIN', password = 'Rachel123456')
+conn = pymssql.connect(host = 'BREIN16000122\SQLEXPRESS', database = 'INTURSA_DM')
 cursor = conn.cursor()
+
+conn = pymssql.connect(
+    host='BREIN16000122\SQLEXPRESS',
+    user='BREIN\arojas',
+    database='INTURSA_DM'
+)
 
 app = Flask(__name__)
 api = Api(app)
