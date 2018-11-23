@@ -31,7 +31,8 @@ month_number = {
 metricas = {
     'La tarifa promedio': 'REVENUE',
     'El pickup': 'REVENUE',
-    'La ocupacion': 'OCUPACION'
+    'La ocupacion': 'OCUPACION',
+    'Libros': 'REVENUE'
 }
 
 def get_metrica(metrica):
