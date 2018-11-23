@@ -32,7 +32,10 @@ def get_period(period):
     month = month_number[period]
     cut_day = today
    
-    if "pasado" in period and "año" in period:
+    if not period:
+        init_day = today.replace(day=1)
+        end_day = today.replace(day=date_range[1])
+    elif "pasado" in period and "año" in period:
         cut_day = today.replace(year=today.year-1)
         init_day = today.replace(year=today.year-1,month=month,day=1)
         end_day = today.replace(year=today.year-1,month=month,day=date_range[1])
